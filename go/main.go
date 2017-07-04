@@ -1,120 +1,99 @@
-// This one is around 12x faster and 1.5x longer than implementation in Ruby
+// This Go solver is around 12x faster and 1.5x longer than the Ruby implementation
 // Usage: go run main.go path/to/puzzle.txt
 
 package main
 
 import (
-  "fmt"
-  "strconv"
-  "os"
-  "io/ioutil"
-  "regexp"
   "bytes"
+  "fmt"
+  "io/ioutil"
+  "os"
+  "regexp"
+  "strconv"
 )
 
-func loadPuzzle() [81]uint8 {
-  var board [81]uint8
+type board [81]uint8
+type peerMap map[uint8]bool
 
-  buffer, err := ioutil.ReadFile(os.Args[1])
-  if err != nil {
-    panic("Error loading the puzzle file")
-  }
-  puzzle := regexp.MustCompile("[^0-9.]").ReplaceAllString(string(buffer), "")
-
-  for i, char := range puzzle {
-    digit, err := strconv.ParseUint(string(char), 10, 8)
-    if err == nil {
-      board[i] = uint8(digit)
-    }
-  }
-
-  return board
-}
-
-func printPuzzle(board [81]uint8) string {
+// board implements Stringer interface
+func (gameboard *board) String() string {
   result := ""
+
   for i := 0; i <= 80; i++ {
     if i > 0 {
-      if i % 27 == 0 {
+      switch {
+      case i % 27 == 0:
         result += "\n------+-------+------\n"
-      } else if i % 9 == 0 {
+      case i % 9 == 0:
         result += "\n"
-      } else if i % 3 == 0 {
+      case i % 3 == 0:
         result += " | "
-      } else {
+      default:
         result += " "
       }
     }
 
-    if board[i] == 0 {
+    if gameboard[i] == 0 {
       result += "."
     } else {
-      result += strconv.Itoa(int(board[i]))
+      result += strconv.Itoa(int(gameboard[i]))
     }
   }
+
   return result
 }
 
-func rowPeers(board [81]uint8, currentPosition uint8) map[uint8]bool {
+func updatePeers (gameboard *board, peers *peerMap, currentPosition uint8, peerPosition uint8) {
+  if peerPosition != currentPosition {
+    digit := gameboard[peerPosition]
+    if digit != 0 {
+      (*peers)[digit] = true
+    }
+  }
+}
+
+func (gameboard *board) rowPeers(currentPosition uint8) peerMap {
   row_number := currentPosition / 9
-  peers := make(map[uint8]bool)
+  peers := make(peerMap)
 
   for p := row_number * 9; p < (row_number + 1) * 9; p++ {
-    if p == currentPosition {
-      continue
-    }
-    digit := board[p]
-    if digit != 0 {
-      peers[digit] = true
-    }
-
+    updatePeers (gameboard, &peers, currentPosition, p)
   }
   return peers
 }
 
-func columnPeers(board [81]uint8, currentPosition uint8) map[uint8]bool {
+func (gameboard *board) columnPeers(currentPosition uint8) peerMap {
   column_number := currentPosition % 9
-  peers := make(map[uint8]bool)
+  peers := make(peerMap)
 
   for i := 0; i < 9; i++ {
     p := uint8(i * 9) + column_number
-    if p == currentPosition {
-      continue
-    }
-    digit := board[p]
-    if digit != 0 {
-      peers[digit] = true
-    }
-
+    updatePeers (gameboard, &peers, currentPosition, p)
   }
   return peers
 }
 
-func boxPeers (board [81]uint8, currentPosition uint8) map[uint8]bool {
-  squareCoordinates := func(p uint8) uint8 { return 10 * (p / 27) + (p % 9) / 3 } // 0, 1, 2, 10, 11, 12, 20, 21, 22
-  peers := make(map[uint8]bool)
+func (gameboard *board) boxPeers (currentPosition uint8) peerMap {
+  squareCoordinates := func(p uint8) uint8 { return 10 * (p / 27) + (p % 9) / 3 } // xy encoded as 0, 1, 2, 10, 11, 12, 20, 21, 22
+  peers := make(peerMap)
 
   for p := uint8(0); p <= 80; p++ {
-    if p == currentPosition || squareCoordinates(p) != squareCoordinates(currentPosition) {
+    if squareCoordinates(p) != squareCoordinates(currentPosition) {
       continue
     }
-
-    digit := board[p]
-    if digit != 0 {
-      peers[digit] = true
-    }
+    updatePeers (gameboard, &peers, currentPosition, p)
   }
   return peers
 }
 
-func options (board [81]uint8, currentPosition uint8) []uint8 {
+func (gameboard *board) options (currentPosition uint8) []uint8 {
   var options []uint8
 
   for digit := uint8(1); digit <= 9; digit++ {
-    if digit != board[currentPosition] &&
-      !rowPeers(board, currentPosition)[digit] &&
-      !columnPeers(board, currentPosition)[digit] &&
-      !boxPeers(board, currentPosition)[digit] {
+    if digit != gameboard[currentPosition] &&
+      !gameboard.rowPeers(currentPosition)[digit] &&
+      !gameboard.columnPeers(currentPosition)[digit] &&
+      !gameboard.boxPeers(currentPosition)[digit] {
       options = append(options, digit)
     }
   }
@@ -122,28 +101,48 @@ func options (board [81]uint8, currentPosition uint8) []uint8 {
   return options
 }
 
-func solve(board [81]uint8) ([81]uint8, bool) {
-  firstEmptyPosition := bytes.IndexByte(board[:], 0)
-  if firstEmptyPosition == -1 {
-    return board, true
+func loadPuzzle() board {
+  var gameboard board
+
+  buffer, err := ioutil.ReadFile(os.Args[1])
+  if err != nil {
+    fmt.Println("Error loading the puzzle file")
+    os.Exit(1)
+  }
+  puzzle := regexp.MustCompile("[^0-9.]").ReplaceAllString(string(buffer), "")
+
+  for i, char := range puzzle {
+    if digit, err := strconv.ParseUint(string(char), 10, 8); err == nil {
+      gameboard[i] = uint8(digit)
+    }
   }
 
-  for _, option := range options(board, uint8(firstEmptyPosition)) {
-    var updatedBoard [81]uint8
-    copy(updatedBoard[:], board[:])
+  return gameboard
+}
+
+func (gameboard *board) solve() (*board, bool) {
+  firstEmptyPosition := bytes.IndexByte(gameboard[:], 0)
+  if firstEmptyPosition == -1 {
+    return gameboard, true
+  }
+
+  for _, option := range gameboard.options(uint8(firstEmptyPosition)) {
+    var updatedBoard board
+    copy(updatedBoard[:], gameboard[:])
     updatedBoard[firstEmptyPosition] = option
-    solution, solved := solve(updatedBoard)
+    solution, solved := updatedBoard.solve()
     if solved {
       return solution, solved
     }
   }
-  return board, false
+
+  return gameboard, false
 }
 
 func main() {
-  board := loadPuzzle()
-  solution, solved := solve(board)
-  if solved {
-    fmt.Println(printPuzzle(solution))
+  gameboard := board(loadPuzzle())
+
+  if solution, solved := gameboard.solve(); solved {
+    fmt.Println(solution) // here the board's String() method will be used, this mechanism works like to_s in Ruby
   }
 }
