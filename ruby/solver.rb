@@ -10,15 +10,6 @@ class Board
     @digits = digits
   end
 
-  # returns set of numbers which can be written into position i of the sudoku board
-  def options(i)
-    Set.new('1'..'9') - peers(i)
-  end
-
-  def first_empty_position
-    digits.index('.')
-  end
-
   def to_s
     digits.scan(/.{27}/).map do |x|
       x.scan(/.{9}/).map do |y|
@@ -27,6 +18,15 @@ class Board
         end.join(' | ')
       end.join("\n")
     end.join("\n------+-------+------\n")
+  end
+
+  # returns set of numbers which can be written into position i of the sudoku board
+  def options(i)
+    Set.new('1'..'9') - peers(i)
+  end
+
+  def first_empty_position
+    digits.index('.')
   end
 
   private
