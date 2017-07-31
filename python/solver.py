@@ -48,8 +48,9 @@ def load_puzzle():
         puzzle_str = file_object.read()
         return re.sub(r'[^0-9\.]', '', puzzle_str)
 
+
 try:
     board = Board(load_puzzle())
     print(solve(board))
 except OSError as error:
-    print('Error loading the puzzle file: %s' % error.strerror)
+    print('Error loading the puzzle file: {0}'.format(error.strerror))
