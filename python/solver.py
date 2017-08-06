@@ -36,6 +36,44 @@ class Board():
             )
         )
 
+    def peers(self, i):
+        return self.row_peers(i) | self.column_peers(i) | self.box_peers(i)
+
+    def row_peers(self, i):
+        """returns row peers of digit in the position i (i in 0..80)"""
+        row_number = i // 9
+        return self.digits_on_positions(
+            range(row_number * 9, (row_number + 1) * 9),
+            i
+        )
+
+    def column_peers(self, i):
+        """returns column peers of element in the position i (i in 0..80)"""
+        column_number = i % 9
+        return self.digits_on_positions(
+            [p * 9 + column_number for p in range(9)],
+            i
+        )
+
+    def box_peers(self, i):
+        """returns 3x3 box peers of element in the position i (i in 0..80)"""
+        def box_coordinates(p):
+            return (p // 27, (p % 9) // 3) # (row 0..2, column 0..2)
+        return self.digits_on_positions(
+            [p for p in range(81) if box_coordinates(p) == box_coordinates(i)],
+            i
+        )
+
+    def digits_on_positions(self, positions, current_position):
+        """returns a set containing digits on given board positions, without the digit on the current position"""
+        return set(
+            filter(
+                lambda digit: digit != '.',
+                [self.digits[p] for p in positions if p != current_position]
+            )
+        )
+
+
 def solve(board):
     # TODO
     return board
