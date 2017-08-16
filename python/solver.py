@@ -36,6 +36,16 @@ class Board():
             )
         )
 
+    def options(self, i):
+        """returns set of numbers which can be written into position i of the sudoku board"""
+        return set([str(x) for x in range(1, 10)]) - self.peers(i)
+
+    def first_empty_position(self):
+        """returns the index of the first not-filled board element, None if not found"""
+        position = self.digits.find('.')
+        if position >= 0:
+            return position
+
     def peers(self, i):
         return self.row_peers(i) | self.column_peers(i) | self.box_peers(i)
 
