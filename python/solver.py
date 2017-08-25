@@ -83,10 +83,17 @@ class Board():
             )
         )
 
-
 def solve(board):
-    # TODO
-    return board
+    position = board.first_empty_position()
+    if position is None:
+        return board
+    for option in board.options(position):
+        solution = solve(Board(
+            board.digits[:position] + str(option) + board.digits[position + 1:]
+        ))
+        if solution is not None:
+            return solution
+    return None
 
 def load_puzzle():
     if len(sys.argv) < 2:
