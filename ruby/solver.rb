@@ -62,7 +62,7 @@ class Board
     )
   end
 
-  # returns set containing digits on given board positions, without the digit on the current position
+  # returns a set containing digits on given board positions, without the digit on the current position
   def digits_on_positions(positions, current_position)
     positions
       .reject { |p| p == current_position }
