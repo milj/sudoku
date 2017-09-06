@@ -12,12 +12,12 @@ class Board():
         self.digits = digits
 
     def __str__(self):
-        """__str__ works like to_s in Ruby or Stringer interface in Go"""
+        # __str__ works like to_s in Ruby or Stringer interface in Go
         def line_str(line):
             return (' | ').join(
                 map(
                     lambda three_digit_str: (' ').join(list(three_digit_str)),
-                    re.findall(r'.{3}' , line)
+                    re.findall(r'.{3}', line)
                 )
             )
 
@@ -25,7 +25,7 @@ class Board():
             return ('\n').join(
                 map(
                     line_str,
-                    re.findall(r'.{9}' , boxes)
+                    re.findall(r'.{9}', boxes)
                 )
             )
 
@@ -82,6 +82,7 @@ class Board():
                 [self.digits[p] for p in positions if p != current_position]
             )
         )
+
 
 def solve(board):
     position = board.first_empty_position()
