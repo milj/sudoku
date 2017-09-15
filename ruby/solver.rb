@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Usage: ./solver2.rb path/to/puzzle.txt
+# Usage: ./solver.rb path/to/puzzle.txt
 
 require 'set'
 
@@ -55,7 +55,7 @@ class Board
 
   # returns 3x3 box peers of element in the position i (i in 0..80)
   def box_peers(i)
-    box_coordinates = ->(p) { [p / 27, (p % 9) / 3] } # returns tuple [row 0..2, column 0..2]
+    box_coordinates = ->(p) { [p / 27, (p % 9) / 3] } # returns a tuple [row 0..2, column 0..2], this is actually an array, no tuples in Ruby. Using a lambda as Ruby lacks nested methods too.
     digits_on_positions(
       (0..80).select { |p| box_coordinates.call(p) == box_coordinates.call(i) },
       i
@@ -72,14 +72,6 @@ class Board
   end
 end
 
-# loads puzzle string (81 characters, 1..9 or dots for unknowns) from a file
-def load_puzzle
-  puzzle_filename = ARGV[0]
-  raise 'No puzzle file given' unless puzzle_filename
-  puzzle_str = File.read(puzzle_filename)
-  puzzle_str.gsub(/[^0-9\.]/, '')
-end
-
 # returns a Board instance containing a solved puzzle
 def solve(board)
   position = board.first_empty_position
@@ -91,6 +83,14 @@ def solve(board)
     return solution if solution
   end
   nil
+end
+
+# loads puzzle string (81 characters, 1..9 or dots for unknowns) from a file
+def load_puzzle
+  puzzle_filename = ARGV[0]
+  raise 'No puzzle file given' unless puzzle_filename
+  puzzle_str = File.read(puzzle_filename)
+  puzzle_str.gsub(/[^0-9\.]/, '')
 end
 
 begin
