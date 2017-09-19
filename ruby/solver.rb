@@ -11,10 +11,10 @@ class Board
   end
 
   def to_s
-    digits.scan(/.{27}/).map do |x|
-      x.scan(/.{9}/).map do |y|
-        y.scan(/.{3}/).map do |z|
-          z.split('').join(' ')
+    digits.scan(/.{27}/).map do |three_boxes_str|
+      three_boxes_str.scan(/.{9}/).map do |line_str|
+        line_str.scan(/.{3}/).map do |three_digit_str|
+          three_digit_str.split('').join(' ')
         end.join(' | ')
       end.join("\n")
     end.join("\n------+-------+------\n")
