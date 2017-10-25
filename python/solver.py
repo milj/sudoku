@@ -4,6 +4,10 @@
 Usage: ./solver.py path/to/puzzle
 """
 
+# This Python solver is 2 times faster than the Ruby implementation.
+
+# TODO importable as a module, doctest
+
 import re
 import sys
 
@@ -91,8 +95,13 @@ def solve(board):
         return board
     for option in board.options(position):
         solution = solve(Board(
-            board.digits[:position] + str(option) + board.digits[position + 1:]
-        ))
+            # board.digits[:position] + str(option) + board.digits[position + 1:]
+            '{0}{1}{2}'.format(
+                board.digits[:position],
+                option,
+                board.digits[position + 1:])
+            )
+        )
         if solution is not None:
             return solution
     return None
@@ -101,6 +110,7 @@ def load_puzzle():
     if len(sys.argv) < 2:
         sys.exit('No puzzle file given')
     puzzle_filename = sys.argv[1]
+    # This pythonic context manager construct with 'with' looks pretty much like a Ruby block
     with open(puzzle_filename) as file_object:
         puzzle_str = file_object.read()
         return re.sub(r'[^0-9\.]', '', puzzle_str)
