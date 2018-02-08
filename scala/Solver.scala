@@ -1,7 +1,12 @@
+/**
+ * Sudoku solver
+ * Usage: scala Solver.scala path/to/puzzle.txt
+ */
+
 import scala.io.Source
 
 object Solver {
-  class Board(digits: String) {
+  class Board(val digits: String) { // val makes digits visible from outside
     // Object's toString is similar to to_s (Ruby), __str__ (Python), Stringer interface (Go)
     override def toString(): String = {
       """.{27}""".r.findAllIn(digits).map(three_boxes_str => // does """ come from Python?
@@ -58,10 +63,20 @@ object Solver {
     }
   }
 
-  def solve(board: Board): Board = {
-    // TODO: solve
-    board
-  } 
+  def solve(board: Board): Option[Board] = {
+    board.firstEmptyPosition match {
+      case None => Some(board)
+      case Some(position) => {
+        for (option <- board.options(position)) {
+          val solution = solve(new Board(
+            board.digits.substring(0, position) + option + board.digits.substring(position + 1, board.digits.length)
+          ))
+          if (solution.isDefined) return solution
+        }
+        return None
+      }
+    }
+  }
 
   def loadPuzzle(filePath: String): String = {
     val bufferedSource = Source.fromFile(filePath) // TODO: handle exceptions
@@ -72,6 +87,9 @@ object Solver {
 
   def main(args: Array[String]): Unit = {
     val board = new Board(loadPuzzle(args(0)))
-    println(solve(board))
+    solve(board) match {
+      case Some(solution) => println(solution)
+      case None => println("Could not solve this puzzle.")
+    }
   }
 }
