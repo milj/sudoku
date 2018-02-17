@@ -26,10 +26,10 @@ object Solver {
       case position => Some(position)
     }
 
-    def peers(i: Int): Set[Char] = rowPeers(i) ++ columnPeers(i) ++ boxPeers(i)
+    private[this] def peers(i: Int): Set[Char] = rowPeers(i) ++ columnPeers(i) ++ boxPeers(i)
 
     // returns row peers of digit in the position i (i in 0 to 80)
-    def rowPeers(i: Int): Set[Char] = {
+    private[this] def rowPeers(i: Int): Set[Char] = {
       val rowNumber = i / 9
       digitsOnPositions(
         rowNumber * 9 until (rowNumber + 1) * 9, // first-class range, as in Ruby
@@ -38,7 +38,7 @@ object Solver {
     }
 
     // returns column peers of element in the position i (i in 0 to 80)
-    def columnPeers(i: Int): Set[Char] = {
+    private[this] def columnPeers(i: Int): Set[Char] = {
       val columnNumber = i % 9
       digitsOnPositions(
         (0 to 8) map (_ * 9 + columnNumber), // placeholder syntax (_) reminds me of &:method_name to_proc construct in Rails or reader macros #() in Clojure
@@ -47,7 +47,7 @@ object Solver {
     }
 
     // returns 3x3 box peers of element in the position i (i in 0 to 80)
-    def boxPeers(i: Int): Set[Char] = {
+    private[this] def boxPeers(i: Int): Set[Char] = {
       def boxCoordinates(p: Int): (Int, Int) = {
         (p / 27, (p % 9) / 3) // (row 0..2, column 0..2)
       }
@@ -58,7 +58,7 @@ object Solver {
     }
 
     // returns a set containing digits on given board positions, without the digit on the current position
-    def digitsOnPositions(positions: Seq[Int], currentPosition: Int): Set[Char] = {
+    private[this] def digitsOnPositions(positions: Seq[Int], currentPosition: Int): Set[Char] = {
       positions.filter(_ != currentPosition).map(digits(_)).filter(_ != '.').toSet
     }
   }
