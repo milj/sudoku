@@ -10,13 +10,13 @@ object Solver {
   class Board(val digits: String) { // val makes digits visible from outside
     // Object's toString is similar to to_s (Ruby), __str__ (Python), Stringer interface (Go)
     override def toString(): String = {
-      """.{27}""".r.findAllIn(digits).map(three_boxes_str => // does """ come from Python?
-        """.{9}""".r.findAllIn(three_boxes_str).map(line_str =>
-          """.{3}""".r.findAllIn(line_str).map(three_digit_str =>
-            three_digit_str.mkString(" ") // string can be used as an iterable collection
-          ).mkString(" | ")
-        ).mkString("\n")
-      ).mkString("\n------+-------+------\n") // mkString is equivalent to join in Ruby
+      """.{27}""".r.findAllIn(digits) map (three_boxes_str => // does """ come from Python?
+        """.{9}""".r.findAllIn(three_boxes_str) map (line_str =>
+          """.{3}""".r.findAllIn(line_str) map (three_digit_str =>
+            three_digit_str mkString " " // string can be used as an iterable collection
+          ) mkString " | "
+        ) mkString "\n"
+      ) mkString "\n------+-------+------\n" // mkString is equivalent to join in Ruby
     }
 
     def options(i: Int): Set[Char] = ('1' to '9').toSet -- peers(i)
