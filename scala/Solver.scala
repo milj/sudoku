@@ -79,8 +79,9 @@ object Solver {
       case None => Some(board)
       case Some(position) => {
         for (option <- board.options(position)) {
+          import board.digits
           val solution = solve(new Board(
-            board.digits.substring(0, position) + option + board.digits.substring(position + 1, board.digits.length)
+            digits.substring(0, position) + option + digits.substring(position + 1, digits.length)
           ))
           if (solution.isDefined) return solution
         }
